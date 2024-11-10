@@ -1,72 +1,97 @@
-#include <iostream>
-#include <vector>
+#include<iostream>
+#include<vector>
+#include<queue>
 using namespace std;
-
-// Simple structure to hold item properties
-struct Item {
-    int weight;
-    int value;
+#define MAX_SIZE 100
+class HuffmanTreeNode{
+public:
+    char data;
+    int freq;
+    HuffmanTreeNode* left;
+    HuffmanTreeNode* right;
+    HuffmanTreeNode(char character,int frequency){
+        data = character;
+        freq = frequency;
+        left = right = NULL;
+    }
 };
 
-// Function to solve knapsack problem
-int findMaxValue(int capacity, vector<Item>& items) {
-    int numItems = items.size();
-    
-    // Create DP table
-    vector<vector<int>> dp(numItems + 1, 
-                          vector<int>(capacity + 1, 0));
-    
-    // Fill DP table
-    for (int item = 1; item <= numItems; item++) {
-        for (int weight = 0; weight <= capacity; weight++) {
-            // Get current item's properties (adjust for 0-based indexing)
-            int currentWeight = items[item-1].weight;
-            int currentValue = items[item-1].value;
-            
-            // If current item can fit
-            if (currentWeight <= weight) {
-                // Choose maximum between:
-                // 1. Not taking the item
-                // 2. Taking the item + maximum value possible with remaining weight
-                dp[item][weight] = max(
-                    dp[item-1][weight],
-                    dp[item-1][weight - currentWeight] + currentValue
-                );
-            } else {
-                // If item is too heavy, skip it
-                dp[item][weight] = dp[item-1][weight];
-            }
-        }
+//custom comparator
+class Compare{
+    public:
+    bool operator()(HuffmanTreeNode* a, HuffmanTreeNode* b){
+        return a->freq > b->freq;
     }
-    
-    // Return maximum possible value
-    return dp[numItems][capacity];
+};
+
+HuffmanTreeNode* generateTree(priority_queue<HuffmanTreeNode*,vector<HuffmanTreeNode*>,Compare> pq){
+    while(pq.size() != 1){
+        HuffmanTreeNode *left = pq.top();
+        pq.pop();
+        HuffmanTreeNode *right= pq.top();
+        pq.pop();
+
+        HuffmanTreeNode *node = new HuffmanTreeNode('$', left->freq + right->freq);
+        node->left = left;
+        node->right = right;
+
+        pq.push(node);
+    }
+    return pq.top();
 }
 
-int main() {
-    // Get knapsack capacity
-    int capacity;
-    cout << "Enter knapsack capacity: ";
-    cin >> capacity;
-    
-    // Get number of items
-    int numItems;
-    cout << "Enter number of items: ";
-    cin >> numItems;
-    
-    // Get items' weights and values
-    vector<Item> items(numItems);
-    for (int i = 0; i < numItems; i++) {
-        cout << "Enter weight and value for item " << i + 1 << ": ";
-        cin >> items[i].weight >> items[i].value;
+void printCodes(HuffmanTreeNode *root,vector<int> arr,int top)
+{
+    if(root->left){
+        arr[top] = 0;
+        printCodes(root->left,arr,top+1);
     }
-    
-    // Calculate and display result
-    int result = findMaxValue(capacity, items);
-    cout << "Maximum value: " << result << endl;
-    
+    if (root->right)
+    {
+        arr[top] = 1;
+        printCodes(root->right, arr, top + 1);
+    }
+    if(!root->left && !root->right){
+        cout << root->data << " ";
+        for (int i = 0; i < top;i++){
+            cout << arr[i];
+        }
+        cout << endl;
+    }
+}
+void HuffmanCodes(vector<char> data,vector<int> freq){
+    priority_queue<HuffmanTreeNode *, vector<HuffmanTreeNode *>, Compare> pq;
+    int size = data.size();
+    for (int i = 0; i < size;i++){
+        HuffmanTreeNode *newNode = new HuffmanTreeNode(data[i], freq[i]);
+        pq.push(newNode);
+    }
+    HuffmanTreeNode *root = generateTree(pq);
+
+    vector<int> arr(MAX_SIZE);
+    int top = 0;
+    printCodes(root, arr, top);
+}
+int main(){
+    int n;
+    cin >> n;
+    vector<char> data;
+    vector<int> freq;
+    char x;
+    for (int i = 0; i < n;i++){
+        cin >> x;
+        data.push_back(x);
+    }
+    int y;
+    for (int i = 0; i < n; i++)
+    {
+        cin >> y;
+        freq.push_back(y);
+    }
+    HuffmanCodes(data, freq);
     return 0;
 }
+
 /*
     Input ->
     6

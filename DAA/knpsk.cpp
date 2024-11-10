@@ -1,49 +1,69 @@
-#include <algorithm>
 #include <iostream>
 #include <vector>
-
 using namespace std;
 
+// Simple structure to hold item properties
 struct Item {
     int weight;
     int value;
 };
 
-int knapsack(int W, vector<Item> &items) {
-    int n = items.size();
-    vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
-
-    for (int i = 1; i <= n; i++) {
-        for (int w = 1; w <= W; w++) {
-            if (items[i - 1].weight <= w) {
-                dp[i][w] = max(dp[i - 1][w],
-                               dp[i - 1][w - items[i - 1].weight] + items[i - 1].value);
+// Function to solve knapsack problem
+int findMaxValue(int capacity, vector<Item>& items) {
+    int numItems = items.size();
+    
+    // Create DP table
+    vector<vector<int>> dp(numItems + 1, 
+    vector<int>(capacity + 1, 0));
+    
+    // Fill DP table
+    for (int item = 1; item <= numItems; item++) {
+        for (int weight = 0; weight <= capacity; weight++) {
+            // Get current item's properties (adjust for 0-based indexing)
+            int currentWeight = items[item-1].weight;
+            int currentValue = items[item-1].value;
+            
+            // If current item can fit
+            if (currentWeight <= weight) {
+                // Choose maximum between:
+                // 1. Not taking the item
+                // 2. Taking the item + maximum value possible with remaining weight
+                dp[item][weight] = max(
+                    dp[item-1][weight],
+                    dp[item-1][weight - currentWeight] + currentValue
+                );
             } else {
-                dp[i][w] = dp[i - 1][w];
+                // If item is too heavy, skip it
+                dp[item][weight] = dp[item-1][weight];
             }
         }
     }
-
-    return dp[n][W];
+    
+    // Return maximum possible value
+    return dp[numItems][capacity];
 }
 
 int main() {
-    int W;
+    // Get knapsack capacity
+    int capacity;
     cout << "Enter knapsack capacity: ";
-    cin >> W;
-
-    int n;
+    cin >> capacity;
+    
+    // Get number of items
+    int numItems;
     cout << "Enter number of items: ";
-    cin >> n;
-
-    vector<Item> items(n);
-    for (int i = 0; i < n; i++) {
+    cin >> numItems;
+    
+    // Get items' weights and values
+    vector<Item> items(numItems);
+    for (int i = 0; i < numItems; i++) {
         cout << "Enter weight and value for item " << i + 1 << ": ";
         cin >> items[i].weight >> items[i].value;
     }
-
-    int max_value = knapsack(W, items);
-    cout << "Maximum value: " << max_value << endl;
-
+    
+    // Calculate and display result
+    int result = findMaxValue(capacity, items);
+    cout << "Maximum value: " << result << endl;
+    
     return 0;
 }
